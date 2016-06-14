@@ -1,3 +1,6 @@
+# Other
+pip-selfcheck.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -16,10 +19,12 @@ downloads/
 eggs/
 .eggs/
 lib/
+bin/
 lib64/
 parts/
 sdist/
 var/
+include/
 *.egg-info/
 .installed.cfg
 *.egg
