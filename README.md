@@ -10,7 +10,7 @@ aggressive customer acquisition model via twitter
   
   eg. 
     
-    $ python acquiman.py -u "aaronsdevera" -c "San Francisco" -s "burritos"
+    $ python acquiman.py -u "aaronsdevera" -c "San Francisco" -s "burritos" -x
     $ 
         [+] Agent handle: aaronsdevera
         
