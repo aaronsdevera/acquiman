@@ -21,7 +21,7 @@
 # Usage:
 # acquiman.py -u "<username>" -c "<city>" -s "<subject>" -x
 # -x : engages safety, will not message targeted user
-# eg. $ python acquiman.py -u "aaronsdevera"" -c "San Francisco" -s "burritos"
+# eg. $ python acquiman.py -u "aaronsdevera" -c "San Francisco" -s "burritos"
 ######################################################################
 
 
