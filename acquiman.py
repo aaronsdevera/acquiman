@@ -14,7 +14,7 @@
 # in order to establish allusion of human operation to
 # the targeted user.
 #
-# Messages witll me stored in your default direct message box.
+# Messages will be stored in your default direct message box.
 # After initial contact with a targeted user, it is up to
 # engagement teams to follow up with the user.
 #
