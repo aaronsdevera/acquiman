@@ -69,7 +69,7 @@ def acqurieRaw(subject_prepped):
     user_handle = results.user.screen_name
     tweet_content = results.text
     tweet_location = results.location
-    user_location = api.GetUser(screen_name='EatDrinkSF').location
+    user_location = api.GetUser(screen_name=user_handle).location
 
     return user_handle,tweet_content,tweet_location,user_location
 
