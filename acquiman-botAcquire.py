@@ -48,6 +48,17 @@ for each in f:
 # Activate api usage with instrument authenticated by keys
 api = twitter.Api(consumer_key=keys[0],consumer_secret=keys[1],access_token_key=keys[2],access_token_secret=keys[3])
 
+
+def getCol(col_name):
+    import csv
+    tmp = []
+    with open('acquire-list.csv') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            tmp.append(row[col_name])
+    return tmp
+
+
 ########################
 # ACQUISTION FUNCTION
 ########################
@@ -56,22 +67,43 @@ api = twitter.Api(consumer_key=keys[0],consumer_secret=keys[1],access_token_key=
 ## intakes 'subject_prepped' variable, passed through command line and prepared above
 ## returns user meta data and content
 def acqurieRaw(subject_prepped):
-    # Clarify pool size
-    # by grabbing 2 elements and choosing the first, we ensure at least 1 target
-    pool = 2
 
-    # Grab the search results for the passed subject variable
-    results = api.GetSearch(raw_query='q='+subject_prepped+'%20&result_type=recent&count='+str(pool))
-    # 1 target selected from 2
-    results = results[0]
+    # Make sure the leads are new
+    isNew = False
+    count = 0
+    pool = 90
+    resultsBatch = api.GetSearch(raw_query='q='+subject_prepped+'%20&result_type=recent&count='+str(pool))
+    #print len(resultsBatch)
+    while isNew == False:
+        
+        # Clarify pool size
+        # by grabbing 2 elements and choosing the first, we ensure at least 1 target
+        #pool = count + 2
 
-    # Establish tweet data + contextual info
-    user_handle = results.user.screen_name
-    tweet_content = results.text
-    tweet_location = results.location
-    user_location = api.GetUser(screen_name=user_handle).location
+        # Grab the search results for the passed subject variable
+        #results = api.GetSearch(raw_query='q='+subject_prepped+'%20&result_type=recent&count='+str(pool))
+        # 1 target selected from pool
+        results = resultsBatch[count]
+        
 
-    return user_handle,tweet_content,tweet_location,user_location
+        # Establish tweet data + contextual info
+        user_handle = results.user.screen_name
+        status_id = results.id
+        tweet_content = results.text
+        tweet_location = results.location
+        user_location = api.GetUser(screen_name=user_handle).location
+        create_time = results.created_at
+
+        #print getCol('status_id')
+        #print status_id
+        if str(status_id) in getCol('status_id'):
+            # still false
+            isNew = False
+            count += 1
+        else:
+            isNew = True
+            return create_time,user_handle,status_id,tweet_location,user_location
+            #return create_time,user_handle,status_id,tweet_content,tweet_location,user_location
 
 ###########################
 # COMMANDLINE MAIN FUNCTION
@@ -112,23 +144,24 @@ def main(argv):
     query = query.replace(' ','%20')
 
     # Print out details of your query and your target
-    target_handle,tweet_content,tweet_location,user_location = acqurieRaw(query)
+    create_time,target_handle,status_id,tweet_location,user_location = acqurieRaw(query)
+    #create_time,target_handle,status_id,tweet_content,tweet_location,user_location = acqurieRaw(query)
+    tweet_url = 'https://twitter.com/%s/status/%s' % (target_handle,status_id)
+    
+    """
     print '[+] Agent handle: %s' % (self_user)
     print
+    print '[+] Created on: %s' % (create_time)
     print '[+] Targeting subject: %s' % (subject)
     print '[+] Targeting city: %s' % (city)
     print
     print '[+] Target handle: %s' % (target_handle)
+    print '[+] Status ID: %s' %(status_id)
     print '[+] Tweet: %s' % (tweet_content)
     print '[+] Tweet location: %s' % (tweet_location)
     print '[+] User location: %s' % (user_location)
-
-    ########################
-    # ENGAGEMENT
-    ########################
-
-    # this section assumes you are configuring the tool to engage targets on behalf of your organization.
-    # in this example, we are Sam from Bring A Towel, a crowdsoucred travel site.
+    print '[+] Tweet url: %s' % (tweet_url)
+    """
 
     # agent configuration
     ## who are you?
@@ -136,18 +169,16 @@ def main(argv):
     agency = 'Bring a Towel'
 
     ## what to send to the targeted user
-    form_engagement = 'hey! my name is %s from %s. I saw you tweeting about %s in %s! we\'re compiling a list of places to visit in the city. would you be interested in contributing?' % (agent,agency,subject,city)
-    print '[+] Draft message: \n\n%s\n' % (form_engagement)
+    form_engagement = 'Hey! My name is %s from %s. I saw you tweeting about %s in %s! we\'re compiling a list of places to visit in the city. would you be interested in contributing?' % (agent,agency,subject,city)
     
-    # Check for safety is on
-    if safety != True:
-        # Safety is not on, so go ahead and direct message the target
-        api.PostDirectMessage(target_handle, form_engagement)
-        print '[+] Direct message sent.'
-    else:
-        # Safety is on, so DO NOT direct message the target
-        print '[+] Message not sent; safety is engaged.'
+    file_output='%s,%s,%s,"%s"' % (status_id,target_handle,tweet_url,form_engagement)
+    #file_output='%s,%s,%s,"%s",%s,%s,%s,%s,%s,"%s"' % (create_time,target_handle,status_id,tweet_content,tweet_location,user_location,tweet_url,agent,agency,form_engagement)
+    #print_output='[%s,%s,%s,"%s",%s,%s,%s,%s,%s,"%s"]' % (create_time,target_handle,status_id,tweet_content,tweet_location,user_location,tweet_url,agent,agency,form_engagement)
+    
+    with open('acquire-list.csv','a+') as f:
+        f.write('%s\n' % (file_output))
 
+    return tweet_url
 
 # Body for command line program
 if __name__ == '__main__':
